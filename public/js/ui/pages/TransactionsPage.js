@@ -34,7 +34,6 @@ class TransactionsPage {
    * */
   registerEvents() {
     this.element.addEventListener('click', (event) => {
-      // Клик по кнопке удаления транзакции (.delete-transaction с data-id)
       const deleteTransactionBtn = event.target.closest('.delete-transaction');
       if (deleteTransactionBtn) {
         event.preventDefault();
@@ -45,7 +44,6 @@ class TransactionsPage {
         return;
       }
 
-      // Клик по кнопке удаления счёта (.remove-account)
       const removeAccountBtn = event.target.closest('.remove-account');
       if (removeAccountBtn) {
         event.preventDefault();
@@ -100,14 +98,12 @@ class TransactionsPage {
     this.lastOptions = options;
     const accountId = options.account_id;
 
-    // Получаем название счёта
     Account.get(accountId, (err, response) => {
       if (response && response.success && response.data) {
         this.renderTitle(response.data.name);
       }
     });
 
-    // Получаем список транзакций
     Transaction.list({ account_id: accountId }, (err, response) => {
       if (response && response.success) {
         this.renderTransactions(response.data);
@@ -135,17 +131,33 @@ class TransactionsPage {
   }
 
   /**
-   * Форматирует дату 2019-03-10 03:20:41 → «10 марта 2019 г. в 03:20»
+   * Форматирует дату 2019-03-10 03:20:41 (или ISO-формат) в формат
+   * «10 марта 2019 г. в 03:20»
    * */
   formatDate(date) {
+    if (!date) return '';
+
     const months = [
       'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
       'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
     ];
-    const [datePart, timePart] = date.split(' ');
+
+    const normalized = String(date)
+      .replace('T', ' ')
+      .replace(/\.\d+Z$/, '');
+
+    const parts = normalized.split(' ');
+    if (parts.length < 2) return String(date);
+
+    const [datePart, timePart] = parts;
     const [year, month, day] = datePart.split('-');
     const [hours, minutes] = timePart.split(':');
-    const monthName = months[parseInt(month, 10) - 1];
+
+    if (!year || !month || !day || !hours || !minutes) {
+      return String(date);
+    }
+
+    const monthName = months[parseInt(month, 10) - 1] || month;
     return `${parseInt(day, 10)} ${monthName} ${year} г. в ${hours}:${minutes}`;
   }
 
@@ -188,7 +200,6 @@ class TransactionsPage {
       });
     }
 
-    // Создаём таблицу внутри .content (она не существует в HTML)
     content.innerHTML = `
       <table class="table table-bordered table-striped transactions-table">
         <thead>
