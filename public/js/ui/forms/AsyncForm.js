@@ -13,7 +13,11 @@ class AsyncForm {
    * через registerEvents()
    * */
   constructor(element) {
-
+    if (!element) {
+      throw new Error('Элемент формы не существует');
+    }
+    this.element = element;
+    this.registerEvents();
   }
 
   /**
@@ -21,7 +25,10 @@ class AsyncForm {
    * вызывает метод submit()
    * */
   registerEvents() {
-
+    this.element.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.submit();
+    });
   }
 
   /**
@@ -32,11 +39,20 @@ class AsyncForm {
    * }
    * */
   getData() {
-
+    const data = {};
+    const formData = new FormData(this.element);
+    formData.forEach((value, key) => {
+      data[key] = value;
+    });
+    return data;
   }
 
-  onSubmit(options){
-
+  /**
+   * Метод, который должен быть переопределён в дочерних классах.
+   * Принимает данные формы, полученные из getData().
+   * */
+  onSubmit(options) {
+    // Реализуется в дочерних классах (RegisterForm, LoginForm, и т.д.)
   }
 
   /**
@@ -44,6 +60,7 @@ class AsyncForm {
    * данные, полученные из метода getData()
    * */
   submit() {
-
+    const data = this.getData();
+    this.onSubmit(data);
   }
 }
